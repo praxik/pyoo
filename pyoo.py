@@ -1708,6 +1708,18 @@ class SpreadsheetDocument(_UnoProxy):
     Spreadsheet document.
     """
 
+    def execute_macro(self, *args, language='Basic', location='document'):
+      """
+      """
+      name = '.'.join( args )
+      path = f"vnd.sun.star.script:{name}?language={language}&location={location}"
+      try:
+        script = self._target.getScriptProvider().getScript(path)
+        script.invoke((), (), ())  # Call the macro with no arguments
+        return None
+      except UnoException as e:
+        raise Exception( e )
+
     def save(self, path=None, filter_name=None):
         """
         Saves this document to a local file system.
@@ -1889,6 +1901,11 @@ class Desktop(_UnoProxy):
             pv = uno.createUnoStruct('com.sun.star.beans.PropertyValue')
             pv.Name = 'ReadOnly'
             pv.Value = True
+            extra += (pv,)
+        if True:
+            pv = uno.createUnoStruct('com.sun.star.beans.PropertyValue')
+            pv.Name = 'MacroExecutionMode'
+            pv.Value = 4 # ALWAYS_EXECUTE_NO_WARN
             extra += (pv,)
         # UNO requires absolute paths
         url = uno.systemPathToFileUrl(os.path.abspath(path))
